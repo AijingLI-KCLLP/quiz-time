@@ -162,13 +162,13 @@ export const QUESTIONS_WEBADMIN = [
         q: "Quelle est la différence entre Requires= et Wants= dans un Unit File ?",
         topic: "Systemd",
         options: [
-            "Requires= : si la dépendance échoue, ce service s'arrête. Wants= : dépendance douce, continue même si la dépendance échoue.",
+            "Requires= : dépendance forte, l'échec au démarrage de la dépendance bloque ce service. Wants= : dépendance douce, ce service démarre même si la dépendance échoue.",
             "Requires= et Wants= sont des alias identiques",
             "Wants= est une dépendance forte, Requires= est une dépendance douce",
             "Requires= définit les services qui dépendent de ce service",
         ],
         correct: 0,
-        expl: "Requires= est une dépendance forte : si le service ciblé plante, notre service s'arrête aussi. Wants= est douce : on tente de démarrer la dépendance, mais on continue même si elle échoue.",
+        expl: "Requires= est une dépendance forte : si la dépendance échoue à s'activer, ce service échoue aussi à démarrer, et il est arrêté si on stoppe explicitement la dépendance. Attention : si le service dépendant plante tout seul en cours d'exécution, cela n'arrête PAS automatiquement notre service — ce comportement runtime est propre à BindsTo=, pas à Requires=. Wants= est douce : on tente de démarrer la dépendance, mais on continue même si elle échoue.",
         trap: true,
     },
     {
@@ -431,7 +431,7 @@ export const QUESTIONS_WEBADMIN = [
         q: "Quel fichier faut-il créer pour que SEULS certains utilisateurs puissent utiliser cron ?",
         topic: "Crontab",
         options: [
-            "/etc/cron.allow (liste blanche : seuls les utilisateurs listés peuvent utiliser cron)",
+            "/etc/cron.allow",
             "/etc/cron.permit",
             "/etc/crontab.allow",
             "/etc/cron.conf avec la directive AllowUsers=",
