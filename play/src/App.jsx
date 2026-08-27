@@ -175,10 +175,10 @@ export default function QcmJavascript() {
                         ))}
                     </div>
                     <h1 style={{ fontFamily: fontDisplay, fontSize: 40, fontWeight: 700, color: S.text, margin: "0 0 8px", letterSpacing: "-0.02em" }}>
-                        QCM École .decode
+                        QCM for Aijing
                     </h1>
                     <p style={{ color: S.muted, fontSize: 15, margin: "0 0 6px", fontFamily: fontDisplay }}>
-                        60 questions · mode examen · correction immédiate
+                        60 questions · correction immédiate  · prise de notes
                     </p>
                     <p style={{ color: S.muted, fontSize: 13, margin: "0 0 36px", fontFamily: fontMono }}>
                         Choisissez votre matière

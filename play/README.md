@@ -1,16 +1,55 @@
-# React + Vite
+# QCM École .decode
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+React/Vite application containing JavaScript and web-administration quizzes.
 
-Currently, two official plugins are available:
+## Private access
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+The site is protected with HTTP Basic Authentication before Vite or Vercel serves
+the application, including its JavaScript and question data. Visitors need no
+account: enter any username (for example `access`) and the configured password.
 
-## React Compiler
+The password is read only from the server-side `SITE_PASSWORD` environment
+variable. Never use `VITE_SITE_PASSWORD`: Vite would expose it in the browser
+bundle.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### Run locally
 
-## Expanding the ESLint configuration
+```bash
+cp .env.example .env.local
+# Set a real SITE_PASSWORD in .env.local
+npm install
+npm run dev
+```
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+Open [http://localhost:5174](http://localhost:5174). The browser asks for the
+password before loading the QCM. `.env.local` is ignored by Git.
+
+Vercel's environment variable is available to deployed code, not automatically
+to `npm run dev`. To keep Vercel as the source of the local value after setting
+it in the dashboard, pull it into the ignored local file with
+`vercel env pull .env.local`.
+
+For a phone on the same Wi-Fi network, open `http://YOUR_COMPUTER_IP:5174`.
+Local HTTP is not encrypted, so use this only on a trusted network.
+
+### Deploy on Vercel
+
+1. Import the repository in Vercel (set the Root Directory to `play` if this is
+   a subdirectory of the repository).
+2. In **Project → Settings → Environment Variables**, add `SITE_PASSWORD`.
+   Select Production and Preview (and Development if you use `vercel dev`).
+3. Deploy.
+
+The root [middleware.js](./middleware.js) runs before every Vercel request and
+returns `401 Unauthorized` until the correct password is provided. Vercel
+serves deployments over HTTPS, so the Basic Auth credentials are encrypted in
+transit.
+
+## Commands
+
+```bash
+npm run dev
+npm run build
+npm run lint
+npm run preview
+```
