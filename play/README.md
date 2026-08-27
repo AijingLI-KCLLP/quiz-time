@@ -4,9 +4,9 @@ React/Vite application containing JavaScript and web-administration quizzes.
 
 ## Private access
 
-The site is protected with HTTP Basic Authentication before Vite or Vercel serves
-the application, including its JavaScript and question data. Visitors need no
-account: enter any username (for example `access`) and the configured password.
+The site is protected before Vite or Vercel serves the application, including
+its JavaScript and question data. Visitors need no account: they answer the
+question **“Full name of my cat?”** with the configured password.
 
 The password is read only from the server-side `SITE_PASSWORD` environment
 variable. Never use `VITE_SITE_PASSWORD`: Vite would expose it in the browser
@@ -21,8 +21,8 @@ npm install
 npm run dev
 ```
 
-Open [http://localhost:5174](http://localhost:5174). The browser asks for the
-password before loading the QCM. `.env.local` is ignored by Git.
+Open [http://localhost:5174](http://localhost:5174). The access page asks the
+question before loading the QCM. `.env.local` is ignored by Git.
 
 Vercel's environment variable is available to deployed code, not automatically
 to `npm run dev`. To keep Vercel as the source of the local value after setting
@@ -41,9 +41,8 @@ Local HTTP is not encrypted, so use this only on a trusted network.
 3. Deploy.
 
 The root [middleware.js](./middleware.js) runs before every Vercel request and
-returns `401 Unauthorized` until the correct password is provided. Vercel
-serves deployments over HTTPS, so the Basic Auth credentials are encrypted in
-transit.
+redirects unauthenticated visitors to the access page. Vercel serves deployments
+over HTTPS, so the answer is encrypted in transit.
 
 ## Commands
 
