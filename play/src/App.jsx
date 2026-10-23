@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect, Fragment } from "react";
 import { QUESTIONS } from "./questions.js";
 import { QUESTIONS_WEBADMIN } from "./questions-webadmin.js";
+import { QUESTIONS_CSP } from "./questions-csp.js";
 
 // ============================================================
 // CONFIGURATION DES SUJETS ET DIFFICULTÉS
@@ -36,6 +37,21 @@ const SUBJECTS = [
             { id: "facile", label: "Facile", traps: 8, desc: "20% de questions pièges", detail: "Commandes de base, concepts fondamentaux.", accent: "#4ADE80" },
             { id: "normal", label: "Normal", traps: 14, desc: "35% de questions pièges", detail: "Pièges de configuration, erreurs classiques.", accent: "#A78BFA" },
             { id: "difficile", label: "Difficile", traps: 20, desc: "50% de questions pièges", detail: "Sécurité, escalade de privilèges, cas tordus.", accent: "#F87171" },
+        ],
+    },
+    {
+        id: "csp",
+        label: "Examen civique · CSP",
+        badge: "CSP",
+        badgeColor: "#0055A4",
+        badgeTextColor: "#fff",
+        desc: "République · Institutions · Droits · Histoire · Vie quotidienne",
+        questions: QUESTIONS_CSP,
+        total: 28,
+        difficulties: [
+            { id: "facile", label: "Facile", traps: 4, desc: "Révision guidée", detail: "Les repères et notions les plus directs.", accent: "#4ADE80" },
+            { id: "normal", label: "Normal", traps: 8, desc: "Examen blanc", detail: "Format de 28 questions, avec des formulations à bien lire.", accent: "#F7DF1E" },
+            { id: "difficile", label: "Difficile", traps: 10, desc: "Révision approfondie", detail: "Davantage de distinctions et de questions pièges.", accent: "#F87171" },
         ],
     },
 ];

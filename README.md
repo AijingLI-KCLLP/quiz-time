@@ -1,6 +1,7 @@
 # QCM École .decode
 
 React/Vite application containing JavaScript and web-administration quizzes.
+https://quiz-time-cyan.vercel.app
 
 ## Private access
 
@@ -40,7 +41,7 @@ Local HTTP is not encrypted, so use this only on a trusted network.
    Select Production and Preview (and Development if you use `vercel dev`).
 3. Deploy.
 
-The root [middleware.js](./middleware.js) runs before every Vercel request and
+The root [middleware.js](play/middleware.js) runs before every Vercel request and
 redirects unauthenticated visitors to the access page. Vercel serves deployments
 over HTTPS, so the answer is encrypted in transit.
 
