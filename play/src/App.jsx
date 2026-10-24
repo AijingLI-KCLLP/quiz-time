@@ -103,6 +103,73 @@ function parseRoute() {
     return null;
 }
 const INITIAL_ROUTE = parseRoute();
+const PROGRESS_KEY = "qcm_progress_v1";
+
+function restoreQuiz(subject, savedQuiz) {
+    if (!Array.isArray(savedQuiz) || savedQuiz.length === 0) return null;
+
+    const restored = savedQuiz.map(({ id, optionOrder }) => {
+        const original = subject.questions.find((q) => q.id === id);
+        const validOrder = Array.isArray(optionOrder)
+            && optionOrder.length === original?.options.length
+            && new Set(optionOrder).size === optionOrder.length
+            && optionOrder.every((index) => Number.isInteger(index) && index >= 0 && index < original.options.length);
+        if (!original || !validOrder) return null;
+
+        return {
+            ...original,
+            options: optionOrder.map((index) => original.options[index]),
+            correct: optionOrder.indexOf(original.correct),
+        };
+    });
+
+    return restored.every(Boolean) ? restored : null;
+}
+
+function loadProgress() {
+    try {
+        const saved = JSON.parse(localStorage.getItem(PROGRESS_KEY));
+        if (!saved || !["exam", "results"].includes(saved.screen)) return null;
+
+        const subject = SUBJECTS.find((item) => item.id === saved.subjectId);
+        const difficulty = saved.difficultyId === "all"
+            ? { id: "all", label: "Tout" }
+            : subject?.difficulties.find((item) => item.id === saved.difficultyId);
+        const quiz = subject && restoreQuiz(subject, saved.quiz);
+        const answersValid = Array.isArray(saved.answers)
+            && saved.answers.length === quiz?.length
+            && saved.answers.every((answer) => answer === null || (Number.isInteger(answer) && answer >= 0 && answer < 4));
+
+        if (!subject || !difficulty || !quiz || !answersValid) return null;
+
+        return {
+            screen: saved.screen,
+            subject,
+            difficulty,
+            quiz,
+            answers: saved.answers,
+            current: Number.isInteger(saved.current) && saved.current >= 0 && saved.current < quiz.length ? saved.current : 0,
+            quizTotal: quiz.length,
+            filter: ["all", "wrong", "edited"].includes(saved.filter) ? saved.filter : "all",
+        };
+    } catch {
+        return null;
+    }
+}
+
+function serializeQuiz(subject, quiz) {
+    return quiz.map((q) => {
+        const original = subject.questions.find((item) => item.id === q.id);
+        return { id: q.id, optionOrder: q.options.map((option) => original.options.indexOf(option)) };
+    });
+}
+
+const SAVED_PROGRESS = loadProgress();
+const RESUMED_PROGRESS = SAVED_PROGRESS
+    && (!INITIAL_ROUTE || (INITIAL_ROUTE.subject.id === SAVED_PROGRESS.subject.id
+        && INITIAL_ROUTE.question.id === SAVED_PROGRESS.quiz[SAVED_PROGRESS.current].id))
+    ? SAVED_PROGRESS
+    : null;
 
 // ============================================================
 // STYLES
@@ -125,14 +192,14 @@ const fontDisplay = "'Space Grotesk', 'Segoe UI', sans-serif";
 const fontMono = "'JetBrains Mono', 'Fira Code', monospace";
 
 export default function QcmJavascript() {
-    const [screen, setScreen] = useState(INITIAL_ROUTE ? "single" : "home"); // home | subject | exam | results | single
-    const [subject, setSubject] = useState(INITIAL_ROUTE?.subject ?? null);
-    const [quizTotal, setQuizTotal] = useState(TOTAL);
-    const [difficulty, setDifficulty] = useState(null);
-    const [quiz, setQuiz] = useState([]);
-    const [answers, setAnswers] = useState([]);
-    const [current, setCurrent] = useState(0);
-    const [filter, setFilter] = useState("all"); // all | wrong
+    const [screen, setScreen] = useState(RESUMED_PROGRESS?.screen ?? (INITIAL_ROUTE ? "single" : "home")); // home | subject | exam | results | single
+    const [subject, setSubject] = useState(RESUMED_PROGRESS?.subject ?? INITIAL_ROUTE?.subject ?? null);
+    const [quizTotal, setQuizTotal] = useState(RESUMED_PROGRESS?.quizTotal ?? TOTAL);
+    const [difficulty, setDifficulty] = useState(RESUMED_PROGRESS?.difficulty ?? null);
+    const [quiz, setQuiz] = useState(RESUMED_PROGRESS?.quiz ?? []);
+    const [answers, setAnswers] = useState(RESUMED_PROGRESS?.answers ?? []);
+    const [current, setCurrent] = useState(RESUMED_PROGRESS?.current ?? 0);
+    const [filter, setFilter] = useState(RESUMED_PROGRESS?.filter ?? "all"); // all | wrong | edited
     const [singleQuestion, setSingleQuestion] = useState(INITIAL_ROUTE?.question ?? null);
     const [singleAnswer, setSingleAnswer] = useState(null);
 
@@ -142,7 +209,25 @@ export default function QcmJavascript() {
         } else if (screen !== "single") {
             window.history.replaceState(null, "", "/");
         }
-    }, [screen, current, quiz]);
+    }, [screen, current, quiz, subject]);
+
+    useEffect(() => {
+        if (!["exam", "results"].includes(screen) || !subject || !difficulty || quiz.length === 0) return;
+
+        try {
+            localStorage.setItem(PROGRESS_KEY, JSON.stringify({
+                screen,
+                subjectId: subject.id,
+                difficultyId: difficulty.id,
+                quiz: serializeQuiz(subject, quiz),
+                answers,
+                current,
+                filter,
+            }));
+        } catch {
+            // L'application reste utilisable si le stockage local est désactivé ou plein.
+        }
+    }, [screen, subject, difficulty, quiz, answers, current, filter]);
 
     const selectSubject = (subj) => {
         setSubject(subj);
@@ -164,12 +249,18 @@ export default function QcmJavascript() {
     };
 
     const restart = () => {
+        localStorage.removeItem(PROGRESS_KEY);
         setScreen("home");
         setSubject(null);
         setDifficulty(null);
         setQuiz([]);
         setAnswers([]);
         setQuizTotal(TOTAL);
+    };
+
+    const backToSubject = () => {
+        localStorage.removeItem(PROGRESS_KEY);
+        setScreen("subject");
     };
 
     const answeredCount = answers.filter((a) => a !== null).length;
@@ -551,7 +642,7 @@ export default function QcmJavascript() {
                     </div>
 
                     <div style={{ marginTop: 20, display: "flex", gap: 10 }}>
-                        <button onClick={() => { setScreen("subject"); setSingleQuestion(null); setSingleAnswer(null); }}
+                        <button onClick={() => { backToSubject(); setSingleQuestion(null); setSingleAnswer(null); }}
                             style={{ ...navBtn(false, true), background: S.yellow, color: "#000", fontWeight: 700 }}>
                             Faire le QCM complet →
                         </button>
@@ -593,7 +684,7 @@ export default function QcmJavascript() {
                     </div>
                     <div style={{ marginLeft: "auto", display: "flex", gap: 10, flexWrap: "wrap" }}>
                         <button onClick={() => start(difficulty)} style={navBtn(false)}>Rejouer ({difficulty.label})</button>
-                        <button onClick={() => setScreen("subject")} style={navBtn(false)}>Changer la difficulté</button>
+                        <button onClick={backToSubject} style={navBtn(false)}>Changer la difficulté</button>
                         <button onClick={restart} style={{ ...navBtn(false, true), background: S.yellow, color: "#000", fontWeight: 700 }}>
                             Changer de matière
                         </button>
@@ -662,7 +753,7 @@ export default function QcmJavascript() {
                 </div>
 
                 <div style={{ marginTop: 32, display: "flex", justifyContent: "center", gap: 10 }}>
-                    <button onClick={() => setScreen("subject")} style={{ ...navBtn(false, true), background: S.yellow, color: "#000", fontWeight: 700, padding: "12px 28px" }}>
+                    <button onClick={backToSubject} style={{ ...navBtn(false, true), background: S.yellow, color: "#000", fontWeight: 700, padding: "12px 28px" }}>
                         Changer la difficulté
                     </button>
                     <button onClick={restart} style={{ ...navBtn(false), padding: "12px 28px" }}>
