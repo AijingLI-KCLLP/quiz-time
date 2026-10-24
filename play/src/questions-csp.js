@@ -14,7 +14,7 @@ const SOURCES = {
 function question(id, topic, q, options, fact, source, trap = false) {
   return {
     id, q, topic, options, correct: 0,
-    expl: `${fact} [Référence officielle](${SOURCES[source]}).`,
+    expl: `${fact} [Référence](${SOURCES[source]}).`,
     trap,
   };
 }

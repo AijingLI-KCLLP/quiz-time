@@ -803,7 +803,7 @@ const editBtn = {
 
 // ------------------------------------------------ MINI MARKDOWN
 // Supports: fenced ```code``` blocks, `inline code`, **bold**, *italic*/_italic_,
-// "- " / "1. " lists, and paragraphs separated by blank lines.
+// [links](https://example.com), "- " / "1. " lists, and paragraphs separated by blank lines.
 const inlineCodeStyle = {
     fontFamily: fontMono, fontSize: "0.9em", color: S.code,
     background: S.panelSoft, borderRadius: 4, padding: "1px 5px",
@@ -811,14 +811,19 @@ const inlineCodeStyle = {
 
 function renderInline(str, key) {
     const parts = [];
-    const re = /(\*\*(.+?)\*\*)|(`([^`]+)`)|(\*(.+?)\*)|(_(.+?)_)/g;
+    const re = /(\[([^\]]+)\]\((https?:\/\/[^\s)]+)\))|(\*\*(.+?)\*\*)|(`([^`]+)`)|(\*(.+?)\*)|(_(.+?)_)/g;
     let last = 0, m, idx = 0;
     while ((m = re.exec(str)) !== null) {
         if (m.index > last) parts.push(str.slice(last, m.index));
-        if (m[2] !== undefined) parts.push(<strong key={`${key}-${idx++}`}>{m[2]}</strong>);
-        else if (m[4] !== undefined) parts.push(<code key={`${key}-${idx++}`} style={inlineCodeStyle}>{m[4]}</code>);
-        else if (m[6] !== undefined) parts.push(<em key={`${key}-${idx++}`}>{m[6]}</em>);
-        else if (m[8] !== undefined) parts.push(<em key={`${key}-${idx++}`}>{m[8]}</em>);
+        if (m[2] !== undefined) parts.push(
+            <a key={`${key}-${idx++}`} href={m[3]} target="_blank" rel="noreferrer" style={{ color: S.code, textDecoration: "underline" }}>
+                {m[2]}
+            </a>
+        );
+        else if (m[5] !== undefined) parts.push(<strong key={`${key}-${idx++}`}>{m[5]}</strong>);
+        else if (m[7] !== undefined) parts.push(<code key={`${key}-${idx++}`} style={inlineCodeStyle}>{m[7]}</code>);
+        else if (m[9] !== undefined) parts.push(<em key={`${key}-${idx++}`}>{m[9]}</em>);
+        else if (m[11] !== undefined) parts.push(<em key={`${key}-${idx++}`}>{m[11]}</em>);
         last = re.lastIndex;
     }
     if (last < str.length) parts.push(str.slice(last));
